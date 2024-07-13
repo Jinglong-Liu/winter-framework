@@ -1,0 +1,19 @@
+winter:
+  app:
+    name: winter-app
+    version: 1.0
+    port: 2333
+  datasource:
+    username: root
+    password: pswd
+    port: 3307
+  ssh: 22
+
+  bean1:
+    id: "bean1_id"
+    name: "bean1_name"
+  bean2:
+    a: 'a'
+    b: 'b'
+    c: 'c'
+    d: 'd'
