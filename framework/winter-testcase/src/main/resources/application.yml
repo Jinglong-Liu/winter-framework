@@ -1,2 +1,5 @@
+winter:
+  profiles:
+    active: jdbc
 server:
   port: 8888

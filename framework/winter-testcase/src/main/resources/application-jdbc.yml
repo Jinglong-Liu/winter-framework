@@ -1,0 +1,6 @@
+winter:
+  datasource:
+    url: jdbc:mysql://localhost:3306/winter?useSSL=false&autoReconnect=true&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
