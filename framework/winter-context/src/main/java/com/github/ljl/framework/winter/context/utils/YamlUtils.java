@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @program: winter-framework
@@ -40,6 +41,9 @@ public class YamlUtils {
     }
 
     static void convertTo(Map<String, Object> source, String prefix, Map<String, Object> plain) {
+        if(Objects.isNull(source)) {
+            return;
+        }
         for (String key : source.keySet()) {
             Object value = source.get(key);
             if (value instanceof Map) {

@@ -8,6 +8,7 @@ import com.github.ljl.framework.winter.context.env.StandEnvironment;
 import com.github.ljl.framework.winter.context.exception.*;
 import com.github.ljl.framework.winter.context.io.PropertyResolver;
 import com.github.ljl.framework.winter.context.io.ResourceResolver;
+import com.github.ljl.framework.winter.context.utils.AnnotationUtils;
 import com.github.ljl.framework.winter.context.utils.ApplicationContextUtils;
 import com.github.ljl.framework.winter.context.utils.ClassUtils;
 import org.slf4j.Logger;
@@ -39,9 +40,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
 
     private final PropertyResolver propertyResolver;
 
-    private List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
-
-    private Set<String> contextBeanClassNames = new HashSet<>();
+    private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
 
     public AnnotationConfigApplicationContext(Class<?> configClass, PropertyResolver propertyResolver) {
         this.propertyResolver = propertyResolver;
@@ -79,7 +78,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         ApplicationContextUtils.setApplicationContext(this);
 
         // 扫描获取所有Bean的Class类型:
-        this.contextBeanClassNames = scanForClassNames(configClass);
+        Set<String> contextBeanClassNames = scanForClassNames(configClass);
 
 
         // 创建Bean的定义:
@@ -105,9 +104,8 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                 // 排序:
                 .sorted()
                 // instantiate and collect:
-                .map(def -> {
-                    return (BeanPostProcessor) createBeanAsEarlySingleton(def);
-                }).collect(Collectors.toList());
+                .map(def -> (BeanPostProcessor) createBeanAsEarlySingleton(def))
+                .collect(Collectors.toList());
 
         this.beanPostProcessors.addAll(processors);
 
@@ -388,7 +386,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     }
 
     private boolean isConfigurationDefinition(BeanDefinition def) {
-        return ClassUtils.findAnnotation(def.getBeanClass(), Configuration.class) != null;
+        return AnnotationUtils.findAnnotation(def.getBeanClass(), Configuration.class) != null;
     }
 
     private Map<String, BeanDefinition> createBeanDefinitions(Set<String> classNameSet) {
@@ -397,12 +395,16 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             // 获取Class:
             Class<?> clazz = null;
             try {
-                clazz = Class.forName(className);
+                clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
             } catch (ClassNotFoundException e) {
                 throw new BeanCreationException(e);
             }
+            // 注解类不被管理
+            if (clazz.isAnnotation()) {
+                continue;
+            }
             // 是否标注@Component?
-            Component component = ClassUtils.findAnnotation(clazz, Component.class);
+            Component component = AnnotationUtils.findAnnotation(clazz, Component.class);
             if (component != null) {
                 // 获取Bean的名称:
                 String beanName = ClassUtils.getBeanName(clazz);
@@ -417,7 +419,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                         ClassUtils.findAnnotationMethod(clazz, PreDestroy.class));
                 addBeanDefinitions(defs, beanDefinition);
                 // 查找是否有@Configuration:
-                Configuration configuration = ClassUtils.findAnnotation(clazz, Configuration.class);
+                Configuration configuration = AnnotationUtils.findAnnotation(clazz, Configuration.class);
                 if (configuration != null) {
                     // 查找@Bean方法:
                     scanFactoryMethods(beanName, clazz, defs);
@@ -532,17 +534,21 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         classList.forEach(className -> {
             try {
                 Class<?> clazz = Class.forName(className);
-                // 检查是否有 @ComponentScan 注解，递归扫描
-                if (ClassUtils.findAnnotation(clazz, ComponentScan.class) != null) {
-                    if (!visited.contains(className)) {
-                        visited.add(className);
-                        scanForClassNameRecursive(result, clazz, visited);
+                // 注解本身
+                if (!clazz.isAnnotation()) {
+                    // 检查是否有 @ComponentScan 注解，递归扫描
+                    if (AnnotationUtils.findAnnotation(clazz, ComponentScan.class) != null) {
+                        if (!visited.contains(className)) {
+                            visited.add(className);
+                            scanForClassNameRecursive(result, clazz, visited);
+                        }
                     }
                 }
             } catch (ClassNotFoundException e) {
                 logger.error("Class not found: {}", className, e);
             }
         });
+
         result.addAll(classList);
         return result;
     }
@@ -550,8 +556,20 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * Do component scan and return class names.
      */
     protected Set<String> scan(Class<?> configClass) {
-        ComponentScan scan = ClassUtils.findAnnotation(configClass, ComponentScan.class);
-        final String[] scanPackages = scan == null || scan.value().length == 0 ? new String[]{configClass.getPackage().getName()} : scan.value();
+
+        List<ComponentScan> scanList = AnnotationUtils.findAnnotations(configClass, ComponentScan.class);
+        String[] scanPackages = new String[]{configClass.getPackage().getName()};
+        if (!scanList.isEmpty()) {
+            scanPackages = scanList.stream()
+                    .map(componentScan ->
+                        componentScan.value().length == 0 ?
+                                new String[]{configClass.getPackage().getName()}
+                                : componentScan.value()
+                    )
+                    .flatMap(Arrays::stream)
+                    .distinct().toArray(String[]::new);
+        }
+
         logger.debug("component scan in packages: {}", Arrays.toString(scanPackages));
 
         Set<String> classNameSet = new HashSet<>();
@@ -571,6 +589,24 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             });
             classNameSet.addAll(classList);
         }
+
+        // 查找@Import(包括组合的Import, Class<?>, 获取所有的values):
+
+        final List<Import> imports = AnnotationUtils.findAnnotations(configClass, Import.class);
+        imports.stream()
+                .map(Import::value)
+                .flatMap(Arrays::stream)
+                .distinct()
+                .forEach(importConfigClass -> {
+                    String importClassName = importConfigClass.getName();
+                    if (classNameSet.contains(importClassName)) {
+                        logger.warn("ignore import: " + importClassName + " for it is already been scanned.");
+                    } else {
+                        logger.debug("class found by import: {}", importClassName);
+                        classNameSet.add(importClassName);
+                    }
+                });
+
         return classNameSet;
     }
 
@@ -610,11 +646,11 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             return definitions.get(0);
         }
         // more than 1 beans, require @Primary:
-        List<BeanDefinition> primarydefinitions = definitions.stream().filter(def -> def.isPrimary()).collect(Collectors.toList());
-        if (primarydefinitions.size() == 1) {
-            return primarydefinitions.get(0);
+        List<BeanDefinition> primaryDefinitions = definitions.stream().filter(def -> def.isPrimary()).collect(Collectors.toList());
+        if (primaryDefinitions.size() == 1) {
+            return primaryDefinitions.get(0);
         }
-        if (primarydefinitions.isEmpty()) {
+        if (primaryDefinitions.isEmpty()) {
             throw new NoUniqueBeanDefinitionException(String.format("Multiple bean with type '%s' found, but no @Primary specified.", type.getName()));
         } else {
             throw new NoUniqueBeanDefinitionException(String.format("Multiple bean with type '%s' found, and multiple @Primary specified.", type.getName()));

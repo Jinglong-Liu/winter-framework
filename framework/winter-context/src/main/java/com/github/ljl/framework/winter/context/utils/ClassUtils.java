@@ -4,11 +4,16 @@ import com.github.ljl.framework.winter.context.annotation.Bean;
 import com.github.ljl.framework.winter.context.annotation.Component;
 import com.github.ljl.framework.winter.context.exception.BeanDefinitionException;
 
+import javax.swing.text.html.Option;
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Inherited;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.Proxy;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.github.ljl.framework.winter.context.utils.AnnotationUtils.findAnnotation;
 
 /**
  * @program: winter-framework
@@ -27,14 +32,16 @@ public class ClassUtils {
      * </code>
      */
     public static Method findAnnotationMethod(Class<?> clazz, Class<? extends Annotation> annoClass) {
-        // try get declared method:
-        List<Method> ms = Arrays.stream(clazz.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(annoClass)).map(m -> {
-            if (m.getParameterCount() != 0) {
-                throw new BeanDefinitionException(
-                        String.format("Method '%s' with @%s must not have argument: %s", m.getName(), annoClass.getSimpleName(), clazz.getName()));
-            }
-            return m;
-        }).collect(Collectors.toList());
+        // try to get declared method:
+        List<Method> ms = Arrays.stream(clazz.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(annoClass))
+                .peek(m -> {
+                    if (m.getParameterCount() != 0) {
+                        throw new BeanDefinitionException(
+                            String.format("Method '%s' with @%s must not have argument: %s", m.getName(), annoClass.getSimpleName(), clazz.getName()));
+                    }
+                }).collect(Collectors.toList());
+
         if (ms.isEmpty()) {
             return null;
         }
@@ -43,22 +50,7 @@ public class ClassUtils {
         }
         throw new BeanDefinitionException(String.format("Multiple methods with @%s found in class: %s", annoClass.getSimpleName(), clazz.getName()));
     }
-    public static <A extends Annotation> A findAnnotation(Class<?> target, Class<A> annoClass) {
-        A a = target.getAnnotation(annoClass);
-        for (Annotation anno : target.getAnnotations()) {
-            Class<? extends Annotation> annoType = anno.annotationType();
-            if (!annoType.getPackage().getName().equals("java.lang.annotation")) {
-                A found = findAnnotation(annoType, annoClass);
-                if (found != null) {
-                    if (a != null) {
-                        throw new BeanDefinitionException("Duplicate @" + annoClass.getSimpleName() + " found on class " + target.getSimpleName());
-                    }
-                    a = found;
-                }
-            }
-        }
-        return a;
-    }
+
     /**
      * Get bean name by:
      *
