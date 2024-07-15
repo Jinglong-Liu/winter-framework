@@ -529,11 +529,13 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
 
     private Set<String> scanForClassNameRecursive(Set<String>result, Class<?> configClass, Set<String> visited) {
 
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
         Set<String> classList = scan(configClass);
 
         classList.forEach(className -> {
             try {
-                Class<?> clazz = Class.forName(className);
+                Class<?> clazz = classLoader.loadClass(className);
                 // 注解本身
                 if (!clazz.isAnnotation()) {
                     // 检查是否有 @ComponentScan 注解，递归扫描
@@ -550,27 +552,49 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         });
 
         result.addAll(classList);
+
+        // try to add jdbcTemplate
+
+
+
         return result;
     }
     /**
      * Do component scan and return class names.
      */
     protected Set<String> scan(Class<?> configClass) {
+        /**
+         * 需要预先尝试加载的内部bean
+         * //  TODO: 放到配置文件
+         */
+        String[] preparedConfigs = {
+                configClass.getName(),
+                "com.github.ljl.framework.winter.jdbc.config.JdbcConfiguration",
+        };
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        Set<String> scanPackages = new HashSet<>();
+        for (String configNames: preparedConfigs) {
+            try {
+                Class<?> clazz = classLoader.loadClass(configNames);
+                scanPackages.add(clazz.getPackage().getName());
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
 
         List<ComponentScan> scanList = AnnotationUtils.findAnnotations(configClass, ComponentScan.class);
-        String[] scanPackages = new String[]{configClass.getPackage().getName()};
         if (!scanList.isEmpty()) {
-            scanPackages = scanList.stream()
+            scanPackages.addAll(scanList.stream()
                     .map(componentScan ->
                         componentScan.value().length == 0 ?
+                                // TODO
                                 new String[]{configClass.getPackage().getName()}
                                 : componentScan.value()
                     )
                     .flatMap(Arrays::stream)
-                    .distinct().toArray(String[]::new);
+                    .collect(Collectors.toSet()));
         }
 
-        logger.debug("component scan in packages: {}", Arrays.toString(scanPackages));
+        logger.debug("component scan in packages: {}", Arrays.toString(scanPackages.toArray(new String[0])));
 
         Set<String> classNameSet = new HashSet<>();
         for (String pkg : scanPackages) {

@@ -2,6 +2,8 @@
 
 | 版本号 | 发布日期       | 变更内容                                      | 负责人 |
 |-----|------------|-------------------------------------------|-----|
+| 1.4 | 2024-07-15 | 添加 [winter-prd-04.md](./winter-prd-04.md) | ljl |
+| 1.3 | 2024-07-15 | 添加 [winter-prd-03.md](./winter-prd-03.md) | ljl |
 | 1.2 | 2024-07-13 | 添加 [winter-prd-02.md](./winter-prd-02.md) | ljl |
 | 1.1 | 2024-07-13 | 添加 [winter-prd-01.md](./winter-prd-01.md) | ljl |
 | 1.0 | 2024-07-13 | winter-framework prd初始版本                  | ljl |
