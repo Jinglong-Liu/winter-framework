@@ -1,5 +1,5 @@
 winter:
   profiles:
-    active: jdbc
+    active: aop
 server:
   port: 8888
