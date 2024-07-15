@@ -10,6 +10,8 @@
     <modules>
         <module>winter-context</module>
         <module>winter-boot</module>
+        <module>winter-webmvc</module>
+        <module>winter-testcase</module>
     </modules>
     <properties>
         <lombok.version>1.18.24</lombok.version>
@@ -17,6 +19,8 @@
         <snakeyaml.version>1.27</snakeyaml.version>
         <logback.version>1.2.11</logback.version>
         <slf4j.version>1.7.32</slf4j.version>
+        <javax.servlet.version>4.0.1</javax.servlet.version>
+        <jackson.verion>2.13.1</jackson.verion>
     </properties>
     <packaging>pom</packaging>
 

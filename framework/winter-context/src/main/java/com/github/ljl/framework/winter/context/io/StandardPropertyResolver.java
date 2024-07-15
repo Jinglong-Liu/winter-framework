@@ -1,5 +1,7 @@
 package com.github.ljl.framework.winter.context.io;
 
+import com.github.ljl.framework.winter.context.utils.DataConvertUtils;
+
 import java.time.*;
 import java.util.*;
 import java.util.function.Function;
@@ -13,7 +15,7 @@ import java.util.function.Function;
 
 public class StandardPropertyResolver implements PropertyResolver {
     private Map<String, String> properties = new HashMap<>();
-    private Map<Class<?>, Function<String, Object>> converters = new HashMap<>();
+    private Map<Class<?>, Function<String, Object>> converters = DataConvertUtils.converter();
 
     public StandardPropertyResolver(Properties props) {
         this.properties.putAll(System.getenv());
@@ -21,36 +23,6 @@ public class StandardPropertyResolver implements PropertyResolver {
         for (String name : names) {
             this.properties.put(name, props.getProperty(name));
         }
-
-        // register converters:
-        converters.put(String.class, s -> s);
-        converters.put(boolean.class, s -> Boolean.parseBoolean(s));
-        converters.put(Boolean.class, s -> Boolean.valueOf(s));
-
-        converters.put(byte.class, s -> Byte.parseByte(s));
-        converters.put(Byte.class, s -> Byte.valueOf(s));
-
-        converters.put(short.class, s -> Short.parseShort(s));
-        converters.put(Short.class, s -> Short.valueOf(s));
-
-        converters.put(int.class, s -> Integer.parseInt(s));
-        converters.put(Integer.class, s -> Integer.valueOf(s));
-
-        converters.put(long.class, s -> Long.parseLong(s));
-        converters.put(Long.class, s -> Long.valueOf(s));
-
-        converters.put(float.class, s -> Float.parseFloat(s));
-        converters.put(Float.class, s -> Float.valueOf(s));
-
-        converters.put(double.class, s -> Double.parseDouble(s));
-        converters.put(Double.class, s -> Double.valueOf(s));
-
-        converters.put(LocalDate.class, s -> LocalDate.parse(s));
-        converters.put(LocalTime.class, s -> LocalTime.parse(s));
-        converters.put(LocalDateTime.class, s -> LocalDateTime.parse(s));
-        converters.put(ZonedDateTime.class, s -> ZonedDateTime.parse(s));
-        converters.put(Duration.class, s -> Duration.parse(s));
-        converters.put(ZoneId.class, s -> ZoneId.of(s));
     }
 
     @Override
