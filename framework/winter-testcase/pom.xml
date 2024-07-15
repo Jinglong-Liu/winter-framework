@@ -45,6 +45,11 @@
         </dependency>
         <dependency>
             <groupId>com.github</groupId>
+            <artifactId>winter-aop</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github</groupId>
             <artifactId>winter-boot</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

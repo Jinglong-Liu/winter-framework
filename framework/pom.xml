@@ -13,6 +13,7 @@
         <module>winter-webmvc</module>
         <module>winter-testcase</module>
         <module>winter-jdbc</module>
+        <module>winter-aop</module>
     </modules>
     <properties>
         <lombok.version>1.18.24</lombok.version>

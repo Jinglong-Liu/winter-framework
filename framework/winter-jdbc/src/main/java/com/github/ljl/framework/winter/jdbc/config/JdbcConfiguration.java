@@ -6,6 +6,9 @@ import com.github.ljl.framework.winter.context.annotation.Configuration;
 import com.github.ljl.framework.winter.context.annotation.Value;
 import com.github.ljl.framework.winter.jdbc.template.JdbcTemplate;
 import com.github.ljl.framework.winter.jdbc.template.StandardJdbcTemplate;
+import com.github.ljl.framework.winter.jdbc.transaction.bean.DataSourceTransactionManager;
+import com.github.ljl.framework.winter.jdbc.transaction.bean.StandardTransactionManager;
+import com.github.ljl.framework.winter.jdbc.transaction.bean.TransactionalBeanPostProcessor;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -51,5 +54,14 @@ public class JdbcConfiguration {
         return new StandardJdbcTemplate(dataSource);
     }
 
+    @Bean
+    TransactionalBeanPostProcessor transactionalBeanPostProcessor() {
+        return new TransactionalBeanPostProcessor();
+    }
+
+    @Bean
+    StandardTransactionManager standardTransactionManager(@Autowired DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
 }
 

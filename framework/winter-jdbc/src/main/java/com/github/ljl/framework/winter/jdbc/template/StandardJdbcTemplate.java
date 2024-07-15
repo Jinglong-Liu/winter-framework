@@ -2,6 +2,7 @@ package com.github.ljl.framework.winter.jdbc.template;
 
 import com.github.ljl.framework.winter.jdbc.callback.*;
 import com.github.ljl.framework.winter.jdbc.exception.DataAccessException;
+import com.github.ljl.framework.winter.jdbc.transaction.TransactionalUtils;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -105,6 +106,18 @@ public class StandardJdbcTemplate implements JdbcTemplate {
 
     // 此处真正管理connection
     public <T> T execute(ConnectionCallback<T> action) throws DataAccessException {
+        // 尝试获取当前事务连接:
+        Connection current = TransactionalUtils.getCurrentConnection();
+        if (current != null) {
+            try {
+                return action.doInConnection(current);
+            } catch (SQLException e) {
+                throw new DataAccessException(e);
+            }
+        }
+        // 无事务,从DataSource获取新连接:
+
+
         // 获取新连接:
         try (Connection newConn = dataSource.getConnection()) {
             final boolean autoCommit = newConn.getAutoCommit();

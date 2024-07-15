@@ -570,6 +570,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         String[] preparedConfigs = {
                 configClass.getName(),
                 "com.github.ljl.framework.winter.jdbc.config.JdbcConfiguration",
+                "com.github.ljl.framework.winter.aop.bean.AroundProxyBeanPostProcessor",
         };
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Set<String> scanPackages = new HashSet<>();
