@@ -37,7 +37,7 @@ public class StandardPropertyResolver implements PropertyResolver {
             if (keyExpr.getDefaultValue() != null) {
                 return getProperty(keyExpr.getKey(), keyExpr.getDefaultValue());
             } else {
-                return getRequiredProperty(keyExpr.getKey());
+                return getProperty(keyExpr.getKey());
             }
         }
         String value = this.properties.get(key);

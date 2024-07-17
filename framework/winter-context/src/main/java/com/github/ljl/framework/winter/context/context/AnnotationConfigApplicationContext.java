@@ -222,7 +222,12 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
 
         // @Value注入:Property
         if (annotation instanceof Value) {
-            Object propValue = this.propertyResolver.getRequiredProperty(value.value(), accessibleType);
+            Object propValue = null;
+            if (((Value) annotation).required()) {
+                propValue = this.propertyResolver.getRequiredProperty(value.value(), accessibleType);
+            } else {
+                propValue = this.propertyResolver.getProperty(value.value(), accessibleType, null);
+            }
             if (field != null) {
                 logger.debug("Field injection: {}.{} = {}", def.getBeanClass().getName(), accessibleName, propValue);
                 field.set(bean, propValue);
@@ -571,6 +576,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                 configClass.getName(),
                 "com.github.ljl.framework.winter.jdbc.config.JdbcConfiguration",
                 "com.github.ljl.framework.winter.aop.bean.AroundProxyBeanPostProcessor",
+                "com.github.ljl.framework.winter.redis.config.RedisConnectionPoolFactory",
         };
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Set<String> scanPackages = new HashSet<>();
@@ -738,7 +744,11 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             final Class<?> type = param.getType();
             if (value != null) {
                 // 参数是@Value:
-                args[i] = this.propertyResolver.getRequiredProperty(value.value(), type);
+                if (value.required()) {
+                    args[i] = this.propertyResolver.getRequiredProperty(value.value(), type);
+                } else {
+                    args[i] = this.propertyResolver.getProperty(value.value(), type, null);
+                }
             }
             else if (autowired != null) {
                 // 参数是@Autowired:

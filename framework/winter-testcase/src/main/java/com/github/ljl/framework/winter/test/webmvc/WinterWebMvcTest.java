@@ -1,7 +1,10 @@
 package com.github.ljl.framework.winter.test.webmvc;
 
 import com.github.ljl.framework.winter.boot.WinterApplication;
+import com.github.ljl.framework.winter.jdbc.template.JdbcTemplate;
 import com.github.ljl.framework.winter.webmvc.annotation.WinterBootWebApplication;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * @program: winter-framework
@@ -14,5 +17,8 @@ import com.github.ljl.framework.winter.webmvc.annotation.WinterBootWebApplicatio
 public class WinterWebMvcTest {
     public static void main(String[] args) {
         WinterApplication.run(WinterWebMvcTest.class);
+        RedisTemplate template;
+        // template.expire()
+        // RedisOperations1
     }
 }
