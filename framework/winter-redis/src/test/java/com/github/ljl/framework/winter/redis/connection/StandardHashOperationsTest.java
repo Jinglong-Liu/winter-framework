@@ -18,10 +18,6 @@ class StandardHashOperationsTest {
 
     private static RedisTemplate hashStringRedisTemplate;
 
-    private static RedisTemplate mapRedisTemplate;
-
-    private static RedisTemplate objectRedisTemplate;
-
     private static Jedis jedisClient;
 
     @BeforeAll
@@ -29,8 +25,8 @@ class StandardHashOperationsTest {
         applicationContext = (ConfigurableApplicationContext) WinterApplication.run(StandardValueOperationTest.class);
         //redisTemplate = applicationContext.getBean(RedisTemplate.class);
         // redisTemplate = applicationContext.getBean("redisTemplate");
-        objectRedisTemplate = applicationContext.getBean("hashObjectRedisTemplate", RedisTemplate.class);
-        mapRedisTemplate = applicationContext.getBean("hashMapRedisTemplate", RedisTemplate.class);
+//        objectRedisTemplate = applicationContext.getBean("hashObjectRedisTemplate", RedisTemplate.class);
+//        mapRedisTemplate = applicationContext.getBean("hashMapRedisTemplate", RedisTemplate.class);
         hashStringRedisTemplate = applicationContext.getBean("hashStringRedisTemplate", RedisTemplate.class);
 
         jedisClient = new Jedis("localhost",6379);

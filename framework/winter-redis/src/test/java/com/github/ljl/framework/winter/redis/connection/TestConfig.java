@@ -1,9 +1,12 @@
 package com.github.ljl.framework.winter.redis.connection;
 
 import org.junit.jupiter.api.Assertions;
+import redis.clients.jedis.Jedis;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -25,7 +28,7 @@ class TestConfig {
         }
         return sb.toString();
     });
-    static Function<Integer, Map> generateRandomStringMap = (size -> {
+    static Function<Integer, Map<String, String>> generateRandomStringMap = (size -> {
         Map<String, String> hash = new HashMap<>();
         while(hash.size() < size) {
             String field = generateRandomString.apply(_random.nextInt(100));
@@ -43,6 +46,13 @@ class TestConfig {
         });
         return list;
     });
+
+    static Function<Integer, Set<String>> generateRandomStringSet = (size) -> {
+        return generateRandomStringMap.apply(size).keySet();
+    };
+    static BiConsumer<Jedis, Collection<String>> clearKeys = (jedis, collection) -> {
+        jedis.del(collection.toArray(new String[0]));
+    };
 }
 
 

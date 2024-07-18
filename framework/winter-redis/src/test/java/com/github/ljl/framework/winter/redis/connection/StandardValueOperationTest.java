@@ -26,9 +26,9 @@ class StandardValueOperationTest {
     private static RedisTemplate<String, String> stringStringRedisTemplate;
 
     private static Map<String, String> testMap;
-    private static Consumer<Collection<String>> clearKeys = collection -> {
-        jedis.del(collection.toArray(new String[0]));
-    };
+//    private static Consumer<Collection<String>> clearKeys = collection -> {
+//        jedis.del(collection.toArray(new String[0]));
+//    };
     private static Consumer<Map<String, String>> addAll = map -> {
         map.entrySet().forEach(entry -> {
             jedis.set(entry.getKey(), entry.getValue());
@@ -54,7 +54,7 @@ class StandardValueOperationTest {
     @AfterEach
     public void after() {
         if (Objects.nonNull(testMap)) {
-            clearKeys.accept(testMap.keySet());
+            clearKeys.accept(jedis, testMap.keySet());
         }
     }
 
@@ -62,7 +62,7 @@ class StandardValueOperationTest {
     @Test
     public void testSet() {
         testMap = generateRandomStringMap.apply(200);
-        clearKeys.accept(testMap.keySet());
+        clearKeys.accept(jedis,testMap.keySet());
 
         testMap.entrySet().forEach(entry -> {
             Assertions.assertNull(jedis.get(entry.getKey()));
@@ -73,7 +73,7 @@ class StandardValueOperationTest {
     @Test
     public void testSetTimeout() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         Random random = new Random();
         for (Map.Entry<String, String> entry: map.entrySet()) {
             long timeout = random.nextInt(200);
@@ -87,13 +87,13 @@ class StandardValueOperationTest {
             }
             Assertions.assertNull(jedis.get(entry.getKey()));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     public void testSetTimeoutDuration() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         Random random = new Random();
 
         for (Map.Entry<String, String> entry: map.entrySet()) {
@@ -109,24 +109,24 @@ class StandardValueOperationTest {
             Assertions.assertNull(jedis.get(entry.getKey()));
         }
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
     @Test
     void testSetIfAbsent() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
 
         for (Map.Entry<String, String> entry: map.entrySet()) {
             Assertions.assertTrue(valueOperations.setIfAbsent(entry.getKey(), entry.getValue()));
             Assertions.assertFalse(valueOperations.setIfAbsent(entry.getKey(), entry.getValue()));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testSetIfAbsentTimeout() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         Random random = new Random();
 
         for (Map.Entry<String, String> entry: map.entrySet()) {
@@ -144,13 +144,13 @@ class StandardValueOperationTest {
             Assertions.assertTrue(valueOperations.setIfAbsent(entry.getKey(), entry.getValue(), timeout, TimeUnit.MILLISECONDS));
         }
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testSetIfAbsentDuration() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         Random random = new Random();
 
         for (Map.Entry<String, String> entry: map.entrySet()) {
@@ -169,13 +169,13 @@ class StandardValueOperationTest {
             Assertions.assertTrue(valueOperations.setIfAbsent(entry.getKey(), entry.getValue(), duration));
         }
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testSetIfPresent() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         for (Map.Entry<String, String> entry: map.entrySet()) {
             Assertions.assertFalse(valueOperations.setIfPresent(entry.getKey(), entry.getValue()));
             Assertions.assertNull(jedis.get(entry.getKey()));
@@ -183,7 +183,7 @@ class StandardValueOperationTest {
             Assertions.assertTrue(valueOperations.setIfPresent(entry.getKey(), entry.getValue()));
             Assertions.assertEquals(entry.getValue(), jedis.get(entry.getKey()));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     /**
@@ -192,7 +192,7 @@ class StandardValueOperationTest {
     @Test
     void testSetIfPresentTimeout() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         Random random = new Random();
 
         for (Map.Entry<String, String> entry: map.entrySet()) {
@@ -212,13 +212,13 @@ class StandardValueOperationTest {
             Assertions.assertFalse(valueOperations.setIfPresent(entry.getKey(), entry.getValue(), timeout, TimeUnit.MILLISECONDS));
         }
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testSetIfPresentDuration() {
         final Map<String, String> map = generateRandomStringMap.apply(20);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         Random random = new Random();
 
         for (Map.Entry<String, String> entry: map.entrySet()) {
@@ -239,26 +239,26 @@ class StandardValueOperationTest {
             Assertions.assertFalse(valueOperations.setIfPresent(entry.getKey(), entry.getValue(), duration));
         }
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testGet() {
         final Map<String, String> map = generateRandomStringMap.apply(50);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
 
         for (Map.Entry<String, String> entry: map.entrySet()) {
             Assertions.assertNull(valueOperations.get(entry.getKey()));
             jedis.set(entry.getKey(), entry.getValue());
             Assertions.assertEquals(entry.getValue(), valueOperations.get(entry.getKey()));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testGetAndDelete() {
         final Map<String, String> map = generateRandomStringMap.apply(50);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
 
         for (Map.Entry<String, String> entry: map.entrySet()) {
             Assertions.assertNull(valueOperations.getAndDelete(entry.getKey()));
@@ -266,14 +266,14 @@ class StandardValueOperationTest {
             Assertions.assertEquals(entry.getValue(), valueOperations.getAndDelete(entry.getKey()));
             Assertions.assertNull(jedis.get(entry.getKey()));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testGetAndExpireTimeout() throws InterruptedException {
         final Map<String, String> map = generateRandomStringMap.apply(10);
         Random random = new Random();
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         for (Map.Entry<String, String> entry: map.entrySet()) {
             long timeout = 100 + random.nextInt(300);
             Assertions.assertNull(valueOperations.getAndExpire(entry.getKey(), timeout, TimeUnit.MILLISECONDS));
@@ -284,14 +284,14 @@ class StandardValueOperationTest {
             Thread.sleep(timeout - 50 + 1);
             Assertions.assertNotNull(valueOperations.getAndExpire(entry.getKey(), timeout, TimeUnit.MILLISECONDS));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testGetAndExpireDuration() throws InterruptedException {
         final Map<String, String> map = generateRandomStringMap.apply(10);
         Random random = new Random();
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         for (Map.Entry<String, String> entry: map.entrySet()) {
             long timeout = 100 + random.nextInt(300);
             Duration duration = Duration.ofMillis(timeout);
@@ -303,7 +303,7 @@ class StandardValueOperationTest {
             Thread.sleep(timeout - 50 + 1);
             Assertions.assertNotNull(valueOperations.getAndExpire(entry.getKey(), duration));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     /**
@@ -314,7 +314,7 @@ class StandardValueOperationTest {
     void testGetAndPersist() throws InterruptedException {
         final Map<String, String> map = generateRandomStringMap.apply(10);
         Random random = new Random();
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         for (Map.Entry<String, String> entry: map.entrySet()) {
             long timeout = 100 + random.nextInt(300);
             Assertions.assertNull(valueOperations.getAndPersist(entry.getKey()));
@@ -323,20 +323,20 @@ class StandardValueOperationTest {
             Thread.sleep(timeout  + 100);
             Assertions.assertEquals(entry.getValue(), jedis.get(entry.getKey()));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
     void testGetAndSet() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
         for (Map.Entry<String, String> entry: map.entrySet()) {
             Assertions.assertNull(valueOperations.getAndSet(entry.getKey(), entry.getValue()));
             jedis.set(entry.getKey(), entry.getValue());
             Assertions.assertEquals(entry.getValue(), valueOperations.getAndSet(entry.getKey(), entry.getKey()));
             Assertions.assertEquals(entry.getKey(), jedis.get(entry.getKey()));
         }
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
     }
 
     @Test
@@ -345,7 +345,7 @@ class StandardValueOperationTest {
         map.put("key1", "value1");
         map.put("key2", "value2");
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
 
         valueOperations.multiSet(map);
 
@@ -355,7 +355,7 @@ class StandardValueOperationTest {
 
         Arrays.sort(strings);
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
 
         String[] expected = new ArrayList<>(map.values()).toArray(new String[0]);
         Arrays.sort(expected);
@@ -373,7 +373,7 @@ class StandardValueOperationTest {
                 .filter(entry -> entry.hashCode() % 2 == 1)
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() + "123456"));
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
 
         Assertions.assertTrue(valueOperations.multiSetIfAbsent(subMap1));
 
@@ -388,7 +388,7 @@ class StandardValueOperationTest {
         Arrays.sort(expected);
         Arrays.sort(actual);
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
 
         Assertions.assertArrayEquals(expected, actual);
 
@@ -398,7 +398,7 @@ class StandardValueOperationTest {
     public void testMultiGet() {
         Map<String, String> map = generateRandomStringMap.apply(100);
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis, map.keySet());
 
         List<String> nullList = valueOperations.multiGet(map.keySet());
         for (String expectedNull: nullList) {
@@ -414,7 +414,7 @@ class StandardValueOperationTest {
         Arrays.sort(expected);
         Arrays.sort(actual);
 
-        clearKeys.accept(map.keySet());
+        clearKeys.accept(jedis,map.keySet());
 
         Assertions.assertArrayEquals(expected, actual);
     }

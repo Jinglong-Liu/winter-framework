@@ -48,7 +48,7 @@ public class RedisConnectionPoolFactory {
     public JedisClientConfig jedisConfig(@Value("${winter.redis.host:localhost}") String host,
                                          @Value("${winter.redis.port:6379}") Integer port,
                                          @Value("${winter.redis.user}") String user,
-                                         @Value("${winter.redis.password:}") String password,
+                                         @Value("${winter.redis.password}") String password,
                                          @Value("${winter.redis.database:0}") Integer database, // 一共0-15，共16个数据库
                                          @Value("${winter.redis.timeout:2000}") Integer connectionTimeoutMillis,
                                          @Value("${winter.redis.jedis-client.clientName:}") String clientName,
@@ -73,8 +73,34 @@ public class RedisConnectionPoolFactory {
         return template;
     }
 
+    @Bean(value = "stringObjectRedisTemplate")
+    public RedisTemplate<String, Object> stringObjectRedisTemplate() {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+
+        // 使用StringRedisSerializer来序列化和反序列化redis的key值
+        StringRedisSerializer stringRedisSerializer = StringRedisSerializer.get();
+        template.setKeySerializer(stringRedisSerializer);
+
+        // 使用jackson2JsonRedisSerializer来序列化和反序列化redis的value值
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer();
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+
+        return template;
+    }
+    @Bean(value = "redisTemplate")
+    public RedisTemplate objectRedisTemplate() {
+        RedisTemplate template = new RedisTemplate<>();
+
+        // 使用jackson2JsonRedisSerializer来序列化和反序列化redis的 key 和 value 值
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer();
+        template.setKeySerializer(jackson2JsonRedisSerializer);
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+
+        return template;
+    }
+
     @Bean(value = "hashStringRedisTemplate")
-    public RedisTemplate<String, Map<String, String>> stringRedisTemplate() {
+    public RedisTemplate<String, Map<String, String>> hashStringRedisTemplate() {
         RedisTemplate<String, Map<String, String>> template = new RedisTemplate<>();
 
         // 使用StringRedisSerializer来序列化和反序列化redis的key值
@@ -86,41 +112,6 @@ public class RedisConnectionPoolFactory {
         // value: (key, field) -> value
         template.setValueSerializer(stringRedisSerializer);
         template.setHashValueSerializer(stringRedisSerializer);
-
-        return template;
-    }
-
-
-    @Bean(value = "hashObjectRedisTemplate")
-    public RedisTemplate<String, Object> objectRedisTemplate() {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-
-        // 使用StringRedisSerializer来序列化和反序列化redis的key值
-        StringRedisSerializer stringRedisSerializer = StringRedisSerializer.get();
-        template.setKeySerializer(stringRedisSerializer);
-        template.setHashKeySerializer(stringRedisSerializer);
-
-        // 使用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer();
-        template.setValueSerializer(jackson2JsonRedisSerializer);
-        template.setHashValueSerializer(jackson2JsonRedisSerializer);
-
-        return template;
-    }
-
-    @Bean(value = "hashMapRedisTemplate")
-    public RedisTemplate<String, Map<String, Object>> mapRedisTemplate() {
-        RedisTemplate<String, Map<String, Object>> template = new RedisTemplate<>();
-
-        // 使用StringRedisSerializer来序列化和反序列化redis的key值
-        StringRedisSerializer stringRedisSerializer = StringRedisSerializer.get();
-        template.setKeySerializer(stringRedisSerializer);
-        template.setHashKeySerializer(stringRedisSerializer);
-
-        // 使用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer();
-        template.setValueSerializer(jackson2JsonRedisSerializer);
-        template.setHashValueSerializer(jackson2JsonRedisSerializer);
 
         return template;
     }
