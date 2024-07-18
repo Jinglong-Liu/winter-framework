@@ -4,6 +4,7 @@ import com.github.ljl.framework.winter.redis.connection.*;
 import com.github.ljl.framework.winter.redis.serializer.RedisSerializer;
 import com.github.ljl.framework.winter.redis.serializer.StringRedisSerializer;
 import lombok.Getter;
+import lombok.Setter;
 import redis.clients.jedis.JedisClientConfig;
 
 import javax.annotation.Resource;
@@ -28,12 +29,12 @@ public class RedisTemplate<K, V> implements RedisOperations {
 
     @Resource
     private RedisConnectionPool connectionPool;
-
-    @Getter
-    private Class<K> keyType = null;
-
-    @Getter
-    private Class<V> valueType = null;
+//
+//    @Getter
+//    private Class<K> keyType = null;
+//
+//    @Getter
+//    private Class<V> valueType = null;
 
     //private final ConcurrentHashMap<Class<?>, StandardValueOperation<K, V>> valueOpsCache = new ConcurrentHashMap<>();
 
@@ -41,9 +42,22 @@ public class RedisTemplate<K, V> implements RedisOperations {
 
     private static final Map<String, StandardValueOperation> valueOpsCache = new ConcurrentHashMap<>();
 
-    public RedisTemplate(Class<K> keyType, Class<V> valueType) {
-        this.keyType = keyType;
-        this.valueType = valueType;
+    private static final Map<String, StandardHashOperations> hashOpsCache = new ConcurrentHashMap<>();
+
+    @Setter
+    private RedisSerializer hashKeySerializer;
+    @Setter
+    private RedisSerializer hashValueSerializer;
+    @Setter
+    private RedisSerializer keySerializer;
+    @Setter
+    private RedisSerializer valueSerializer;
+
+
+
+
+    public RedisTemplate() {
+
     }
 
     // 真正执行execute
@@ -61,17 +75,36 @@ public class RedisTemplate<K, V> implements RedisOperations {
         return result;
     }
 
+    /**
+     * 这些应当可以程序员定制
+     * @return
+     */
     public RedisSerializer getKeySerializer() {
-        return StringRedisSerializer.get();
+        return this.keySerializer != null ? this.keySerializer : StringRedisSerializer.get();
+    }
+    public RedisSerializer getValueSerializer() {
+        return this.valueSerializer != null ? this.valueSerializer : StringRedisSerializer.get();
+    }
+    public RedisSerializer getHashKeySerializer() {
+        return this.hashKeySerializer != null ? this.hashKeySerializer : StringRedisSerializer.get();
+    }
+    public RedisSerializer getHashValueSerializer() {
+        return this.hashValueSerializer != null ? this.hashValueSerializer : StringRedisSerializer.get();
     }
 
     public StandardValueOperation<K, V> opsForValues() {
-        // return new StandardValueOperation<K, V>(this, keyType, valueType);
+        return new StandardValueOperation<K, V>(this);
         // Generate a key for the cache map based on the types
         // 怎么感觉会更慢。。。
         // Class<?> cacheKey = new CacheKey<>(keyType, valueType).getClass();
-        String key = "valueOps" + keyType.getName() + valueType.getName();
-        return valueOpsCache.computeIfAbsent(key, k -> new StandardValueOperation<>(this, keyType, valueType));
+        //String key = "valueOps" + keyType.getName() + valueType.getName();
+        //return valueOpsCache.computeIfAbsent(key, k -> new StandardValueOperation<>(this, keyType, valueType));
+    }
+
+    public <HK, HV> StandardHashOperations<K, HK, HV> opsForHash() {
+        return new StandardHashOperations<>((RedisTemplate<K, Object>) this);
+        ///String key = "HashOps" + keyType.getName() + valueType.getName();
+        //return hashOpsCache.computeIfAbsent(key, k -> new StandardHashOperations(this, keyType, valueType));
     }
 
     static class CacheKey<K, V> {

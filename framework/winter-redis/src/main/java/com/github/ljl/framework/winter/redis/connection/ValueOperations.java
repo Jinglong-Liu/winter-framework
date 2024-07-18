@@ -91,7 +91,7 @@ public interface ValueOperations<K, V> extends RedisOperations {
 
     Boolean getBit(K key, long offset);
 
-//    List<Long> bitField(K key, BitFieldSubCommands subCommands);
+    List<Long> bitField(K key, BitFieldSubCommands subCommands);
 
     RedisOperations<K, V> getOperations();
 }

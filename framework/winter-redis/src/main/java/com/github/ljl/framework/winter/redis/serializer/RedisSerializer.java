@@ -2,6 +2,9 @@ package com.github.ljl.framework.winter.redis.serializer;
 
 import com.github.ljl.framework.winter.redis.exception.SerializationException;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * @program: winter-framework
  * @description:
@@ -10,6 +13,7 @@ import com.github.ljl.framework.winter.redis.exception.SerializationException;
  **/
 
 public interface RedisSerializer<T> {
+    Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     /**
      * Serialize the given object to binary data.
      *

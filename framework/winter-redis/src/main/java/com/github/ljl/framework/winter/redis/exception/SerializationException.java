@@ -8,4 +8,10 @@ package com.github.ljl.framework.winter.redis.exception;
  **/
 
 public class SerializationException extends RuntimeException {
+    public SerializationException(String message) {
+        super(message);
+    }
+    public SerializationException(String message, Throwable e) {
+        super(message, e);
+    }
 }

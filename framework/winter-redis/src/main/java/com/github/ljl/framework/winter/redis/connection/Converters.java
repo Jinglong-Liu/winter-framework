@@ -10,6 +10,7 @@ import redis.clients.jedis.params.SetParams;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.AbstractMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -133,5 +134,8 @@ class Converters {
             default:
                 throw new IllegalArgumentException();
         }
+    }
+    public static <K, V> Map.Entry<K, V> entryOf(K key, V value) {
+        return new AbstractMap.SimpleImmutableEntry<>(key, value);
     }
 }

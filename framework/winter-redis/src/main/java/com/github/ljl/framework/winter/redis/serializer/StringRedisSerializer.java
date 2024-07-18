@@ -18,7 +18,6 @@ public class StringRedisSerializer implements RedisSerializer<String> {
     /**
      * TODO: charset
      */
-    private static final Charset charset = StandardCharsets.UTF_8;
 
     private StringRedisSerializer() {}
     private static StringRedisSerializer instance = null;
@@ -35,11 +34,11 @@ public class StringRedisSerializer implements RedisSerializer<String> {
     }
     @Override
     public byte[] serialize(String string) throws SerializationException {
-        return (string == null ? null : string.getBytes(charset));
+        return (string == null ? null : string.getBytes(DEFAULT_CHARSET));
     }
 
     @Override
     public String deserialize(byte[] bytes) throws SerializationException {
-        return (bytes == null ? null : new String(bytes, charset));
+        return (bytes == null ? null : new String(bytes, DEFAULT_CHARSET));
     }
 }

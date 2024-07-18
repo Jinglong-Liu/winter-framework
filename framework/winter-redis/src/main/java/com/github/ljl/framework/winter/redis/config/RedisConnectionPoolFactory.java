@@ -1,5 +1,6 @@
 package com.github.ljl.framework.winter.redis.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ljl.framework.winter.context.annotation.Autowired;
 import com.github.ljl.framework.winter.context.annotation.Bean;
 import com.github.ljl.framework.winter.context.annotation.Configuration;
@@ -7,10 +8,13 @@ import com.github.ljl.framework.winter.context.annotation.Value;
 import com.github.ljl.framework.winter.redis.connection.JedisConnectionPool;
 import com.github.ljl.framework.winter.redis.connection.RedisConnectionPool;
 import com.github.ljl.framework.winter.redis.core.JedisPoolConfigWrapper;
+import com.github.ljl.framework.winter.redis.serializer.Jackson2JsonRedisSerializer;
+import com.github.ljl.framework.winter.redis.serializer.StringRedisSerializer;
 import com.github.ljl.framework.winter.redis.template.RedisTemplate;
 import redis.clients.jedis.*;
 
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * @program: winter-framework
@@ -65,7 +69,59 @@ public class RedisConnectionPoolFactory {
 
     @Bean(value = "stringStringRedisTemplate")
     public RedisTemplate<String, String> stringStringRedisTemplate() {
-        RedisTemplate<String, String> template = new RedisTemplate<>(String.class, String.class);
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+        return template;
+    }
+
+    @Bean(value = "hashStringRedisTemplate")
+    public RedisTemplate<String, Map<String, String>> stringRedisTemplate() {
+        RedisTemplate<String, Map<String, String>> template = new RedisTemplate<>();
+
+        // 使用StringRedisSerializer来序列化和反序列化redis的key值
+        StringRedisSerializer stringRedisSerializer = StringRedisSerializer.get();
+        template.setKeySerializer(stringRedisSerializer);
+        template.setHashKeySerializer(stringRedisSerializer);
+
+        // 使用StringRedisSerializer来序列化和反序列化redis的value值
+        // value: (key, field) -> value
+        template.setValueSerializer(stringRedisSerializer);
+        template.setHashValueSerializer(stringRedisSerializer);
+
+        return template;
+    }
+
+
+    @Bean(value = "hashObjectRedisTemplate")
+    public RedisTemplate<String, Object> objectRedisTemplate() {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+
+        // 使用StringRedisSerializer来序列化和反序列化redis的key值
+        StringRedisSerializer stringRedisSerializer = StringRedisSerializer.get();
+        template.setKeySerializer(stringRedisSerializer);
+        template.setHashKeySerializer(stringRedisSerializer);
+
+        // 使用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer();
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+
+        return template;
+    }
+
+    @Bean(value = "hashMapRedisTemplate")
+    public RedisTemplate<String, Map<String, Object>> mapRedisTemplate() {
+        RedisTemplate<String, Map<String, Object>> template = new RedisTemplate<>();
+
+        // 使用StringRedisSerializer来序列化和反序列化redis的key值
+        StringRedisSerializer stringRedisSerializer = StringRedisSerializer.get();
+        template.setKeySerializer(stringRedisSerializer);
+        template.setHashKeySerializer(stringRedisSerializer);
+
+        // 使用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer();
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+
         return template;
     }
 }

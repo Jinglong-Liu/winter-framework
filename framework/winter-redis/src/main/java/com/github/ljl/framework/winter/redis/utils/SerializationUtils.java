@@ -34,4 +34,8 @@ public class SerializationUtils {
 
         return (T) values;
     }
+//    public static <T> List<T> deserialize(List<byte[]> rawValues,
+//                                          RedisSerializer<T> redisSerializer) {
+//        return deserializeValues(rawValues, List.class, redisSerializer);
+//    }
 }

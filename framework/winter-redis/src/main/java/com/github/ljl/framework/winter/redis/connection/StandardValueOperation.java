@@ -2,7 +2,6 @@ package com.github.ljl.framework.winter.redis.connection;
 
 import com.github.ljl.framework.winter.redis.template.RedisTemplate;
 import com.github.ljl.framework.winter.redis.type.Expiration;
-import com.github.ljl.framework.winter.redis.utils.SerializationUtils;
 import com.github.ljl.framework.winter.redis.utils.TimeoutUtils;
 
 import java.time.Duration;
@@ -19,8 +18,8 @@ import java.util.stream.Collectors;
 
 public class StandardValueOperation<K, V> extends AbstractOperations<K,V> implements ValueOperations<K,V> {
 
-    public StandardValueOperation(RedisTemplate<K, V> redisTemplate, Class<?> kType, Class<?> vType) {
-        super(redisTemplate, kType, vType);
+    public StandardValueOperation(RedisTemplate<K, V> redisTemplate) {
+        super(redisTemplate);
     }
 
     @Override
@@ -48,6 +47,12 @@ public class StandardValueOperation<K, V> extends AbstractOperations<K,V> implem
                 }
                 return null;
             }
+
+            /**
+             * 有的版本不支持pSetEx，所以这么写
+             * @param connection
+             * @return
+             */
             private boolean failsafeInvokePsetEx(RedisConnection connection) {
                 boolean failed = false;
                 try {
@@ -87,7 +92,11 @@ public class StandardValueOperation<K, V> extends AbstractOperations<K,V> implem
 
     @Override
     public Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit) {
-        return null;
+        byte[] rawKey = rawKey(key);
+        byte[] rawValue = rawValue(value);
+
+        Expiration expiration = Expiration.from(timeout, unit);
+        return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()));
     }
 
     @Override
@@ -98,10 +107,6 @@ public class StandardValueOperation<K, V> extends AbstractOperations<K,V> implem
                     return connection.get(rawKey);
                 }
         });
-    }
-
-    <T> T execute(RedisCallback<T> callback) {
-        return template.execute(callback);
     }
 
     @Override
@@ -131,14 +136,33 @@ public class StandardValueOperation<K, V> extends AbstractOperations<K,V> implem
         });
     }
 
+    /**
+     * 上下两种写法等价
+     * @param key
+     * @param timeout
+     * @return
+     */
     @Override
     public V getAndExpire(K key, Duration timeout) {
-        return null;
+        byte[] rawKey = rawKey(key);
+        Expiration expiration = Expiration.from(timeout);
+        byte[] rawValue =  execute(connection -> connection.getEx(rawKey, expiration));
+        return deserializeValue(rawValue);
     }
 
+    /**
+     * 获取值，并保证其不过期
+     * @param key
+     * @return
+     */
     @Override
     public V getAndPersist(K key) {
-        return null;
+        return execute(new ValueDeserializingRedisCallback(key) {
+            @Override
+            protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+                return connection.getEx(rawKey, Expiration.persistent());
+            }
+        });
     }
 
     @Override
@@ -164,6 +188,12 @@ public class StandardValueOperation<K, V> extends AbstractOperations<K,V> implem
         execute(connection -> connection.mSet(tuple));
     }
 
+    /**
+     * 所有k-v全部成功，返回true
+     * 只要有一个k已经存在，返回false
+     * @param map
+     * @return
+     */
     @Override
     public Boolean multiSetIfAbsent(Map<? extends K, ? extends V> map) {
         Map<byte[], byte[]> tuple = map.entrySet().stream().collect(Collectors.toMap(
@@ -258,6 +288,12 @@ public class StandardValueOperation<K, V> extends AbstractOperations<K,V> implem
         return execute(connection -> connection.getBit(rawKey, offset));
     }
 
+
+    @Override
+    public List<Long> bitField(K key, BitFieldSubCommands subCommands) {
+        throw new RuntimeException("method bitField not impl");
+    }
+
     @Override
     public RedisOperations<K, V> getOperations() {
         return template;
@@ -267,10 +303,5 @@ public class StandardValueOperation<K, V> extends AbstractOperations<K,V> implem
         return (String) stringSerializer().deserialize(value);
     }
 
-    List<V> deserializeValues(List<byte[]> rawValues) {
-        if (valueSerializer() == null) {
-            return (List<V>) rawValues;
-        }
-        return SerializationUtils.deserializeValues(rawValues, List.class, valueSerializer());
-    }
+
 }

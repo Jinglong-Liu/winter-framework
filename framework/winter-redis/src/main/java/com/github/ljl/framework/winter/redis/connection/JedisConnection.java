@@ -29,9 +29,12 @@ public class JedisConnection extends AbstractRedisConnectionDelegate implements 
     private final HostAndPort hostAndPort;
 
     private final JedisClientConfig jedisClientConfig;
+
     private final JedisKeyCommands jedisKeyCommands = new JedisKeyCommands(this);
 
     private final JedisStringCommands jedisStringCommands = new JedisStringCommands(this);
+
+    private final JedisHashCommands jedisHashCommands = new JedisHashCommands(this);
 
     public JedisConnection(HostAndPort hostAndPort, JedisClientConfig jedisClientConfig) {
         this.hostAndPort = hostAndPort;
@@ -46,6 +49,11 @@ public class JedisConnection extends AbstractRedisConnectionDelegate implements 
     @Override
     public RedisStringCommands stringCommands() {
         return jedisStringCommands;
+    }
+
+    @Override
+    public RedisHashCommands hashCommands() {
+        return jedisHashCommands;
     }
 
     public Jedis getJedis() {

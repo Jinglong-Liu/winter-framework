@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
  **/
 
 public interface RedisConnection<K, V> extends RedisCommands {
+//    <T> T execute(RedisCallback<T> callback);
 
     // <T> T execute(RedisCallback<T> action);
 //

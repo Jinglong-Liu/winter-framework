@@ -16,11 +16,13 @@ import java.util.concurrent.TimeUnit;
  * @create: 2024-07-16 14:30
  **/
 
-abstract class AbstractRedisConnectionDelegate implements RedisCommands {
+ abstract class AbstractRedisConnectionDelegate implements RedisCommands {
 
     public abstract RedisKeyCommands keyCommands();
 
     public abstract RedisStringCommands stringCommands();
+
+    public abstract RedisHashCommands hashCommands();
 
     @Override
     public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
@@ -126,6 +128,11 @@ abstract class AbstractRedisConnectionDelegate implements RedisCommands {
     public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
         keyCommands().restore(key, ttlInMillis, serializedValue, replace);
     }
+
+    /**
+     * hashCommands
+     */
+
 
     @Override
     public Duration idletime(byte[] key) {
@@ -275,5 +282,95 @@ abstract class AbstractRedisConnectionDelegate implements RedisCommands {
     @Override
     public Boolean mSet(Map tuple) {
         return stringCommands().mSet(tuple);
+    }
+
+    @Override
+    public Boolean hSet(byte[] key, byte[] field, byte[] value) {
+        return hashCommands().hSet(key, field, value);
+    }
+
+    @Override
+    public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
+        return hashCommands().hSetNX(key, field, value);
+    }
+
+    @Override
+    public byte[] hGet(byte[] key, byte[] field) {
+        return hashCommands().hGet(key, field);
+    }
+
+    @Override
+    public List<byte[]> hMGet(byte[] key, byte[]... fields) {
+        return hashCommands().hMGet(key, fields);
+    }
+
+    @Override
+    public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
+        hashCommands().hMSet(key, hashes);
+    }
+
+    @Override
+    public Long hIncrBy(byte[] key, byte[] field, long delta) {
+        return hashCommands().hIncrBy(key, field, delta);
+    }
+
+    @Override
+    public Double hIncrBy(byte[] key, byte[] field, double delta) {
+        return hashCommands().hIncrBy(key, field, delta);
+    }
+
+    @Override
+    public Boolean hExists(byte[] key, byte[] field) {
+        return hashCommands().hExists(key, field);
+    }
+
+    @Override
+    public Long hDel(byte[] key, byte[]... fields) {
+        return hashCommands().hDel(key, fields);
+    }
+
+    @Override
+    public Long hLen(byte[] key) {
+        return hashCommands().hLen(key);
+    }
+
+    @Override
+    public Set<byte[]> hKeys(byte[] key) {
+        return hashCommands().hKeys(key);
+    }
+
+    @Override
+    public List<byte[]> hVals(byte[] key) {
+        return hashCommands().hVals(key);
+    }
+
+    @Override
+    public Map<byte[], byte[]> hGetAll(byte[] key) {
+        return hashCommands().hGetAll(key);
+    }
+
+    @Override
+    public byte[] hRandField(byte[] key) {
+        return hashCommands().hRandField(key);
+    }
+
+    @Override
+    public Map.Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+        return hashCommands().hRandFieldWithValues(key);
+    }
+
+    @Override
+    public List<byte[]> hRandField(byte[] key, long count) {
+        return hashCommands().hRandField(key, count);
+    }
+
+    @Override
+    public List<Map.Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+        return hashCommands().hRandFieldWithValues(key, count);
+    }
+
+    @Override
+    public Long hStrLen(byte[] key, byte[] field) {
+        return hashCommands().hStrLen(key, field);
     }
 }
