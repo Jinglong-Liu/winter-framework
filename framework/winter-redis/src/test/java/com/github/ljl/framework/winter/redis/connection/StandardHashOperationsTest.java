@@ -23,10 +23,10 @@ class StandardHashOperationsTest {
     @BeforeAll
     public static void init() {
         applicationContext = (ConfigurableApplicationContext) WinterApplication.run(StandardValueOperationTest.class);
-        //redisTemplate = applicationContext.getBean(RedisTemplate.class);
-        // redisTemplate = applicationContext.getBean("redisTemplate");
-//        objectRedisTemplate = applicationContext.getBean("hashObjectRedisTemplate", RedisTemplate.class);
-//        mapRedisTemplate = applicationContext.getBean("hashMapRedisTemplate", RedisTemplate.class);
+        //  redisTemplate = applicationContext.getBean(RedisTemplate.class);
+        //  redisTemplate = applicationContext.getBean("redisTemplate");
+        //  objectRedisTemplate = applicationContext.getBean("hashObjectRedisTemplate", RedisTemplate.class);
+        //  mapRedisTemplate = applicationContext.getBean("hashMapRedisTemplate", RedisTemplate.class);
         hashStringRedisTemplate = applicationContext.getBean("hashStringRedisTemplate", RedisTemplate.class);
 
         jedisClient = new Jedis("localhost",6379);

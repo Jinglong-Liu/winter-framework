@@ -108,9 +108,6 @@ class StandardValueOperationTestForObject {
         Assertions.assertNull(valueOperation.getAndPersist(users[0]));
     }
 
-
-
-
     private Supplier<User> randomUserGenerate = () -> {
         Integer id = _random.nextInt(10000);
         Integer age = 10 + _random.nextInt(50);

@@ -26,9 +26,7 @@ class StandardValueOperationTest {
     private static RedisTemplate<String, String> stringStringRedisTemplate;
 
     private static Map<String, String> testMap;
-//    private static Consumer<Collection<String>> clearKeys = collection -> {
-//        jedis.del(collection.toArray(new String[0]));
-//    };
+
     private static Consumer<Map<String, String>> addAll = map -> {
         map.entrySet().forEach(entry -> {
             jedis.set(entry.getKey(), entry.getValue());
@@ -186,9 +184,6 @@ class StandardValueOperationTest {
         clearKeys.accept(jedis, map.keySet());
     }
 
-    /**
-     *  TODO: 概率不过
-     */
     @Test
     void testSetIfPresentTimeout() {
         final Map<String, String> map = generateRandomStringMap.apply(10);
@@ -536,6 +531,6 @@ class StandardValueOperationTest {
         assertEquals(stringStringRedisTemplate, valueOperations.getOperations());
     }
 //
-////    List<Long> bitField(K key, BitFieldSubCommands subCommands);
+//    List<Long> bitField(K key, BitFieldSubCommands subCommands);
 
 }

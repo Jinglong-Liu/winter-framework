@@ -20,13 +20,5 @@ public class Main {
         final ApplicationContext context = WinterApplication.run(Main.class);
         RedisTemplate template = context.getBean(RedisTemplate.class);
         assert template != null;
-
-
-
-
-        String value = (String) template.opsForValues().get("111");
-        String user = (String) template.opsForValues().get("seckillGoods:1");
-        System.out.println(value);
-        System.out.println(user);
     }
 }
