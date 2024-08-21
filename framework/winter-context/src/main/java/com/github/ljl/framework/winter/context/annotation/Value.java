@@ -15,4 +15,6 @@ import java.lang.annotation.*;
 public @interface Value {
 
     String value();
+
+    boolean required() default false;
 }
